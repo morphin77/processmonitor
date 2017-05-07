@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
-using System.Threading;
+using System.IO;
 
 namespace ProcessMonitor
 {
@@ -58,6 +58,24 @@ namespace ProcessMonitor
 					var statuslabel = this.Controls[names[i]];
 					statuslabel.Text = "Процесс " + names[i] + " запущен";
 				}
+
+				ProcessStartInfo psiOpt = new ProcessStartInfo(@"cmd.exe", @"/C tasklist /fi ""status eq not responding"" /fi ""imagename eq "+names[i]+".exe ");
+				psiOpt.WindowStyle = ProcessWindowStyle.Hidden;
+				psiOpt.StandardOutputEncoding = Encoding.GetEncoding(866);
+				psiOpt.RedirectStandardOutput = true;
+				psiOpt.UseShellExecute = false;
+				psiOpt.CreateNoWindow = true;
+				Process procCommand = Process.Start(psiOpt);
+				StreamReader srIncoming = procCommand.StandardOutput;
+				bool b = srIncoming.ReadToEnd().ToString().Contains("Информация: Задачи, отвечающие заданным критериям, отсутствуют.");
+				if (b!=true)
+				{
+					var statuslabel = this.Controls[names[i]];
+					statuslabel.Text = "Процесс " + names[i] + " завис";
+				}
+				
+				procCommand.Close();
+								
 			}
 		}		
 	}
